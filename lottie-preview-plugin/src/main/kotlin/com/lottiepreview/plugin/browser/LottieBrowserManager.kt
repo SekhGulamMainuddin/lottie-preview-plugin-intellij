@@ -1,0 +1,16 @@
+package com.lottiepreview.plugin.browser
+
+import com.intellij.openapi.Disposable
+import java.io.File
+import javax.swing.JComponent
+
+interface LottieBrowserManager : Disposable {
+    val component: JComponent
+
+    fun loadAnimation(file: File)
+    fun play()
+    fun pause()
+    fun stop()
+    fun setLoop(loop: Boolean)
+    fun setSpeed(speed: Float)
+}

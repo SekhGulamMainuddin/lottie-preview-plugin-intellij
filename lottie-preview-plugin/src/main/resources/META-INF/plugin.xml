@@ -1,0 +1,33 @@
+<idea-plugin>
+  <id>com.lottiepreview.plugin</id>
+  <name>Lottie Preview</name>
+  <vendor>Lottie Preview</vendor>
+  <description><![CDATA[
+    Preview Lottie animations directly inside Android Studio.
+  ]]></description>
+
+  <depends>com.intellij.modules.platform</depends>
+
+  <extensions defaultExtensionNs="com.intellij">
+    <toolWindow
+      id="Lottie Preview"
+      anchor="right"
+      factoryClass="com.lottiepreview.plugin.toolwindow.LottiePreviewWindowFactory"/>
+  </extensions>
+
+  <projectListeners>
+    <listener
+      class="com.lottiepreview.plugin.file.LottieFileListener"
+      topic="com.intellij.openapi.fileEditor.FileEditorManagerListener"/>
+  </projectListeners>
+
+  <actions>
+    <action
+      id="com.lottiepreview.OpenLottieAction"
+      class="com.lottiepreview.plugin.actions.OpenLottieAction"
+      text="Open in Lottie Preview"
+      description="Preview this Lottie animation in the IDE">
+      <add-to-group group-id="ProjectViewPopupMenu" anchor="after" relative-to-action="RevealIn"/>
+    </action>
+  </actions>
+</idea-plugin>
