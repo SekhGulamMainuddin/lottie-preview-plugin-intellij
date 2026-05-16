@@ -15,5 +15,7 @@ class NoOpLottieBrowserManager : LottieBrowserManager {
     override fun stop() = Unit
     override fun setLoop(loop: Boolean) = Unit
     override fun setSpeed(speed: Float) = Unit
+    override fun setBackgroundColor(hexColor: String) = Unit
+    override fun setShowBoundary(show: Boolean) = Unit
     override fun dispose() = Unit
 }

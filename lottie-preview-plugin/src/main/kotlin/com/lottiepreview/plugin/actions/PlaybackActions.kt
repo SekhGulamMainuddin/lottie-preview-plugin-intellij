@@ -7,11 +7,15 @@ import javax.swing.JLabel
 import javax.swing.JToggleButton
 import javax.swing.JToolBar
 
-object PlaybackActions {
-    fun buildToolbar(manager: LottieBrowserManager): JToolBar {
-        return JToolBar().apply {
-            isFloatable = false
+import java.awt.FlowLayout
+import javax.swing.JCheckBox
+import javax.swing.JPanel
+import javax.swing.JComponent
+import javax.swing.Box
 
+object PlaybackActions {
+    fun buildToolbar(manager: LottieBrowserManager): JComponent {
+        val panel = JPanel(FlowLayout(FlowLayout.LEFT)).apply {
             add(JButton("Play").apply {
                 toolTipText = "Play"
                 addActionListener { manager.play() }
@@ -27,7 +31,7 @@ object PlaybackActions {
                 addActionListener { manager.stop() }
             })
 
-            addSeparator()
+            add(Box.createHorizontalStrut(10))
 
             add(JToggleButton("Loop").apply {
                 toolTipText = "Loop"
@@ -35,7 +39,7 @@ object PlaybackActions {
                 addActionListener { manager.setLoop(isSelected) }
             })
 
-            addSeparator()
+            add(Box.createHorizontalStrut(10))
             add(JLabel(" Speed: "))
 
             add(JComboBox(arrayOf("0.5x", "1x", "1.5x", "2x")).apply {
@@ -45,6 +49,26 @@ object PlaybackActions {
                     manager.setSpeed(speed)
                 }
             })
+
+            add(Box.createHorizontalStrut(10))
+            add(JLabel(" BG Color: "))
+            add(com.intellij.ui.components.JBTextField(7).apply {
+                toolTipText = "Enter hex color (e.g., #FFFFFF)"
+                val applyColor = { manager.setBackgroundColor(text) }
+                addActionListener { applyColor() }
+                document.addDocumentListener(object : javax.swing.event.DocumentListener {
+                    override fun insertUpdate(e: javax.swing.event.DocumentEvent?) = applyColor()
+                    override fun removeUpdate(e: javax.swing.event.DocumentEvent?) = applyColor()
+                    override fun changedUpdate(e: javax.swing.event.DocumentEvent?) = applyColor()
+                })
+            })
+
+            add(JCheckBox("Boundary").apply {
+                toolTipText = "Show animation boundary"
+                addActionListener { manager.setShowBoundary(isSelected) }
+            })
         }
+        
+        return panel
     }
 }

@@ -126,6 +126,22 @@
       var container = document.getElementById('lottie-container');
       container.innerHTML = '<div id="placeholder">Open a Lottie JSON file to preview</div>';
     };
+
+    window.setBackgroundColor = function(hexColor) {
+      if (hexColor && hexColor[0] !== '#' && /^[0-9A-Fa-f]{3,8}$/.test(hexColor)) {
+          hexColor = '#' + hexColor;
+      }
+      document.body.style.backgroundColor = hexColor;
+    };
+
+    window.lottieSetBoundary = function(show) {
+      var container = document.getElementById('lottie-container');
+      if (show) {
+        container.style.border = '1px dashed #888888';
+      } else {
+        container.style.border = 'none';
+      }
+    };
   </script>
 </body>
 </html>

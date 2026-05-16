@@ -12,6 +12,7 @@
     <toolWindow
       id="Lottie Preview"
       anchor="right"
+      icon="com.lottiepreview.plugin.ui.LottieIcons.ToolWindow"
       factoryClass="com.lottiepreview.plugin.toolwindow.LottiePreviewWindowFactory"/>
   </extensions>
 
@@ -29,6 +30,7 @@
       id="com.lottiepreview.OpenLottieAction"
       class="com.lottiepreview.plugin.actions.OpenLottieAction"
       text="Open in Lottie Preview"
+      icon="com.lottiepreview.plugin.ui.LottieIcons.Action"
       description="Preview this Lottie animation in the IDE">
       <add-to-group group-id="ProjectViewPopupMenu" anchor="after" relative-to-action="RevealIn"/>
     </action>

@@ -15,4 +15,6 @@ interface LottieBrowserManager : Disposable {
     fun stop()
     fun setLoop(loop: Boolean)
     fun setSpeed(speed: Float)
+    fun setBackgroundColor(hexColor: String)
+    fun setShowBoundary(show: Boolean)
 }

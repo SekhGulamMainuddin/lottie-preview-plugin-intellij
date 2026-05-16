@@ -121,6 +121,10 @@ class JcefLottieBrowserManager(
 
     override fun setSpeed(speed: Float) = executeOrQueue("window.lottieSetSpeed($speed)")
 
+    override fun setBackgroundColor(hexColor: String) = executeOrQueue("window.setBackgroundColor(${hexColor.jsStringLiteral()})")
+
+    override fun setShowBoundary(show: Boolean) = executeOrQueue("window.lottieSetBoundary($show)")
+
     private fun executeOrQueue(script: String) {
         if (!playerReady) {
             pendingScripts.add(script)
