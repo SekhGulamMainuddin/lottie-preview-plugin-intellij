@@ -5,8 +5,7 @@ import com.intellij.openapi.vfs.newvfs.BulkFileListener
 import com.intellij.openapi.vfs.newvfs.events.VFileContentChangeEvent
 import com.intellij.openapi.vfs.newvfs.events.VFileDeleteEvent
 import com.intellij.openapi.vfs.newvfs.events.VFileEvent
-import com.intellij.openapi.wm.ToolWindowManager
-import com.lottiepreview.plugin.toolwindow.LottiePreviewPanel
+import com.lottiepreview.plugin.service.LottiePreviewService
 import java.nio.file.Path
 
 /**
@@ -18,8 +17,9 @@ import java.nio.file.Path
 class LottieVfsListener(private val project: Project) : BulkFileListener {
 
     override fun after(events: List<VFileEvent>) {
-        val panel = findPanel() ?: return
-        val currentFile = panel.browserManager.currentFile ?: return
+        if (project.isDisposed) return
+        val service = LottiePreviewService.getInstance(project)
+        val currentFile = service.browserManager.currentFile ?: return
         val currentPath = currentFile.toPath().toAbsolutePath().normalize()
 
         for (event in events) {
@@ -27,8 +27,8 @@ class LottieVfsListener(private val project: Project) : BulkFileListener {
             if (eventPath != currentPath) continue
 
             when (event) {
-                is VFileContentChangeEvent -> panel.browserManager.loadAnimation(currentFile)
-                is VFileDeleteEvent -> panel.browserManager.clear()
+                is VFileContentChangeEvent -> service.browserManager.loadAnimation(currentFile)
+                is VFileDeleteEvent -> service.browserManager.clear()
             }
             return
         }
@@ -40,20 +40,5 @@ class LottieVfsListener(private val project: Project) : BulkFileListener {
         } catch (_: Exception) {
             null
         }
-    }
-
-    private fun findPanel(): LottiePreviewPanel? {
-        if (project.isDisposed) return null
-        val toolWindow = ToolWindowManager.getInstance(project).getToolWindow(TOOL_WINDOW_ID)
-            ?: return null
-        return toolWindow.contentManager
-            .contents
-            .asSequence()
-            .mapNotNull { it.component as? LottiePreviewPanel }
-            .firstOrNull()
-    }
-
-    private companion object {
-        const val TOOL_WINDOW_ID = "Lottie Preview"
     }
 }

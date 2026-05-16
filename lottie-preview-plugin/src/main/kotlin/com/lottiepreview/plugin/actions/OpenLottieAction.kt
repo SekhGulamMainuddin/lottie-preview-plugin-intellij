@@ -5,7 +5,7 @@ import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.CommonDataKeys
 import com.intellij.openapi.wm.ToolWindowManager
 import com.lottiepreview.plugin.file.LottieFileValidator
-import com.lottiepreview.plugin.toolwindow.LottiePreviewPanel
+import com.lottiepreview.plugin.service.LottiePreviewService
 
 class OpenLottieAction : AnAction() {
     override fun update(event: AnActionEvent) {
@@ -20,13 +20,7 @@ class OpenLottieAction : AnAction() {
 
         val toolWindow = ToolWindowManager.getInstance(project).getToolWindow(TOOL_WINDOW_ID) ?: return
         toolWindow.show {
-            val panel = toolWindow.contentManager
-                .contents
-                .asSequence()
-                .mapNotNull { it.component as? LottiePreviewPanel }
-                .firstOrNull()
-
-            panel?.browserManager?.loadAnimation(file.toNioPath().toFile())
+            LottiePreviewService.getInstance(project).loadAnimation(file)
         }
     }
 

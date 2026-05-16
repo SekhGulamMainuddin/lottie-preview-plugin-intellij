@@ -3,7 +3,7 @@ package com.lottiepreview.plugin.file
 import com.intellij.openapi.fileEditor.FileEditorManagerEvent
 import com.intellij.openapi.fileEditor.FileEditorManagerListener
 import com.intellij.openapi.wm.ToolWindowManager
-import com.lottiepreview.plugin.toolwindow.LottiePreviewPanel
+import com.lottiepreview.plugin.service.LottiePreviewService
 
 class LottieFileListener : FileEditorManagerListener {
     override fun selectionChanged(event: FileEditorManagerEvent) {
@@ -14,13 +14,7 @@ class LottieFileListener : FileEditorManagerListener {
         val toolWindow = ToolWindowManager.getInstance(project).getToolWindow(TOOL_WINDOW_ID) ?: return
 
         toolWindow.show {
-            val panel = toolWindow.contentManager
-                .contents
-                .asSequence()
-                .mapNotNull { it.component as? LottiePreviewPanel }
-                .firstOrNull()
-
-            panel?.browserManager?.loadAnimation(file.toNioPath().toFile())
+            LottiePreviewService.getInstance(project).loadAnimation(file)
         }
     }
 
