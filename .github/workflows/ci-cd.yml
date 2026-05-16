@@ -1,5 +1,8 @@
 name: CI/CD
 
+env:
+  ANDROID_STUDIO_VERSION: "2025.3.4.7"
+
 on:
   pull_request:
   push:
@@ -28,23 +31,42 @@ jobs:
 
       - name: Set up Gradle
         uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-home-cache-cleanup: true
+
+      - name: Resolve Android Studio package name
+        shell: bash
+        run: |
+          if [[ "$(uname -m)" == "arm64" ]]; then
+            echo "ANDROID_STUDIO_PACKAGE=android-studio-panda4-patch1-mac_arm.dmg" >> "$GITHUB_ENV"
+          else
+            echo "ANDROID_STUDIO_PACKAGE=android-studio-panda4-patch1-mac.dmg" >> "$GITHUB_ENV"
+          fi
+
+      - name: Cache Android Studio Panda 4 Patch 1
+        id: android-studio-cache
+        uses: actions/cache@v4
+        with:
+          path: ~/android-studio-ci/${{ env.ANDROID_STUDIO_VERSION }}
+          key: ${{ runner.os }}-${{ runner.arch }}-android-studio-${{ env.ANDROID_STUDIO_VERSION }}-${{ env.ANDROID_STUDIO_PACKAGE }}
 
       - name: Install Android Studio Panda 4 Patch 1
         shell: bash
         run: |
           set -euo pipefail
 
-          version="2025.3.4.7"
-          if [[ "$(uname -m)" == "arm64" ]]; then
-            package_name="android-studio-panda4-patch1-mac_arm.dmg"
-          else
-            package_name="android-studio-panda4-patch1-mac.dmg"
+          version_dir="$HOME/android-studio-ci/${ANDROID_STUDIO_VERSION}"
+          app_path="$version_dir/Android Studio.app"
+          if [[ -d "$app_path" ]]; then
+            echo "ANDROID_STUDIO_PATH=$app_path" >> "$GITHUB_ENV"
+            exit 0
           fi
 
-          dmg_path="$RUNNER_TEMP/android-studio.dmg"
+          mkdir -p "$version_dir"
+
+          dmg_path="$version_dir/${ANDROID_STUDIO_PACKAGE}"
           mount_path="$RUNNER_TEMP/android-studio-mount"
-          app_path="$RUNNER_TEMP/Android Studio.app"
-          url="https://redirector.gvt1.com/edgedl/android/studio/install/${version}/${package_name}"
+          url="https://redirector.gvt1.com/edgedl/android/studio/install/${ANDROID_STUDIO_VERSION}/${ANDROID_STUDIO_PACKAGE}"
 
           curl --fail --location --retry 3 --output "$dmg_path" "$url"
           mkdir -p "$mount_path"
