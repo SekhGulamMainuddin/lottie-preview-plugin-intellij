@@ -31,10 +31,16 @@ class JcefLottieBrowserManager(
     @Volatile
     private var playerReady = false
 
+    @Volatile
+    private var _currentFile: File? = null
+
     private val browser = JBCefBrowser()
 
     override val component: JComponent
         get() = browser.component
+
+    override val currentFile: File?
+        get() = _currentFile
 
     init {
         Disposer.register(parentDisposable, browser)
@@ -85,6 +91,7 @@ class JcefLottieBrowserManager(
 
     override fun loadAnimation(file: File) {
         if (!file.isFile) return
+        _currentFile = file
 
         scope.launch {
             runCatching {
@@ -97,6 +104,11 @@ class JcefLottieBrowserManager(
                 executeOrQueue("window.showLottieError(${error.message.orEmpty().jsStringLiteral()})")
             }
         }
+    }
+
+    override fun clear() {
+        _currentFile = null
+        executeOrQueue("window.clearAnimation()")
     }
 
     override fun play() = executeOrQueue("window.lottiePlay()")

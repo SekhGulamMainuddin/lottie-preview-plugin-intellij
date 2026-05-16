@@ -6,8 +6,10 @@ import javax.swing.JComponent
 
 class NoOpLottieBrowserManager : LottieBrowserManager {
     override val component: JComponent = JBLabel("JCEF is not supported in this IDE installation.")
+    override val currentFile: File? = null
 
     override fun loadAnimation(file: File) = Unit
+    override fun clear() = Unit
     override fun play() = Unit
     override fun pause() = Unit
     override fun stop() = Unit

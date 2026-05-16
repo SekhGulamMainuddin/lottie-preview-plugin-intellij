@@ -116,6 +116,16 @@
       speed = nextSpeed;
       if (anim) anim.setSpeed(nextSpeed);
     };
+
+    window.clearAnimation = function() {
+      if (anim) {
+        anim.destroy();
+        anim = null;
+      }
+
+      var container = document.getElementById('lottie-container');
+      container.innerHTML = '<div id="placeholder">Open a Lottie JSON file to preview</div>';
+    };
   </script>
 </body>
 </html>

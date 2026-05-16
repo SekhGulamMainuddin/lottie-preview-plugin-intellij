@@ -19,6 +19,9 @@
     <listener
       class="com.lottiepreview.plugin.file.LottieFileListener"
       topic="com.intellij.openapi.fileEditor.FileEditorManagerListener"/>
+    <listener
+      class="com.lottiepreview.plugin.file.LottieVfsListener"
+      topic="com.intellij.openapi.vfs.newvfs.BulkFileListener"/>
   </projectListeners>
 
   <actions>

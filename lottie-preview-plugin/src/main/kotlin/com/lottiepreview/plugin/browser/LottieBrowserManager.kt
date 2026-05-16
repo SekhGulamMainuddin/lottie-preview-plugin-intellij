@@ -6,8 +6,10 @@ import javax.swing.JComponent
 
 interface LottieBrowserManager : Disposable {
     val component: JComponent
+    val currentFile: File?
 
     fun loadAnimation(file: File)
+    fun clear()
     fun play()
     fun pause()
     fun stop()
