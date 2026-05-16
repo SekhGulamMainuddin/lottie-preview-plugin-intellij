@@ -19,6 +19,7 @@ import java.nio.file.StandardCopyOption
 import java.nio.charset.StandardCharsets
 import java.util.Base64
 import java.util.concurrent.ConcurrentLinkedQueue
+import java.util.zip.ZipInputStream
 import javax.swing.JComponent
 
 class JcefLottieBrowserManager(
@@ -76,6 +77,8 @@ class JcefLottieBrowserManager(
 
         copyResource("lottiepreview/player.html", playerDirectory.resolve("player.html"))
         copyResource("lottiepreview/lottie.min.js", playerDirectory.resolve("lottie.min.js"))
+        copyResource("lottiepreview/dotlottie.js", playerDirectory.resolve("dotlottie.js"))
+        copyResource("lottiepreview/dotlottie-player.wasm", playerDirectory.resolve("dotlottie-player.wasm"))
 
         return playerDirectory.resolve("player.html")
     }
@@ -95,10 +98,11 @@ class JcefLottieBrowserManager(
 
         scope.launch {
             runCatching {
-                val json = file.readText(StandardCharsets.UTF_8)
-                Base64.getEncoder().encodeToString(json.toByteArray(StandardCharsets.UTF_8))
+                val bytes = file.readBytes()
+                Base64.getEncoder().encodeToString(bytes)
             }.onSuccess { base64 ->
-                executeOrQueue("window.loadLottieBase64('$base64')")
+                executeOrQueue("window.loadLottieBase64('$base64', '${file.extension.lowercase()}')")
+                executeOrQueue("window.setFilenameOverlay(${file.name.jsStringLiteral()})")
             }.onFailure { error ->
                 log.warn("Unable to load Lottie file: ${file.absolutePath}", error)
                 executeOrQueue("window.showLottieError(${error.message.orEmpty().jsStringLiteral()})")
@@ -109,6 +113,7 @@ class JcefLottieBrowserManager(
     override fun clear() {
         _currentFile = null
         executeOrQueue("window.clearAnimation()")
+        executeOrQueue("window.setFilenameOverlay('')")
     }
 
     override fun play() = executeOrQueue("window.lottiePlay()")

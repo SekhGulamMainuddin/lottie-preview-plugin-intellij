@@ -8,7 +8,9 @@ object LottieFileValidator {
     private val requiredKeys = listOf("\"v\"", "\"fr\"", "\"ip\"", "\"op\"", "\"layers\"")
 
     fun isLottieJsonFile(file: VirtualFile): Boolean {
-        if (file.extension?.lowercase() != "json") return false
+        val ext = file.extension?.lowercase()
+        if (ext == "lottie") return true
+        if (ext != "json") return false
 
         return runCatching {
             val bytes = file.inputStream.use { input ->

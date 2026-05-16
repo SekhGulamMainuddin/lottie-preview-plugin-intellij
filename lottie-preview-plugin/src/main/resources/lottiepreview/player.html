@@ -45,21 +45,35 @@
   </style>
 </head>
 <body>
+  <div id="filename-overlay" style="position: absolute; top: 10px; left: 10px; font-size: 12px; color: #888; font-family: monospace; z-index: 10; pointer-events: none;"></div>
   <div id="lottie-container">
     <div id="placeholder">Open a Lottie JSON file to preview</div>
   </div>
 
   <script src="lottie.min.js"></script>
+  <script src="dotlottie.js"></script>
   <script>
     var anim = null;
     var loopEnabled = true;
     var speed = 1;
+    var isDotLottie = false;
 
-    window.loadLottieBase64 = function(base64) {
+    window.loadLottieBase64 = function(base64, ext) {
       try {
-        var jsonStr = atob(base64);
-        var animData = JSON.parse(jsonStr);
-        loadLottieData(animData);
+        var binaryString = atob(base64);
+        var len = binaryString.length;
+        var bytes = new Uint8Array(len);
+        for (var i = 0; i < len; i++) {
+          bytes[i] = binaryString.charCodeAt(i);
+        }
+
+        if (ext === 'lottie') {
+          loadDotLottieData(bytes.buffer);
+        } else {
+          var jsonStr = new TextDecoder().decode(bytes);
+          var animData = JSON.parse(jsonStr);
+          loadLottieData(animData);
+        }
       } catch (error) {
         window.showLottieError(error.message || String(error));
       }
@@ -76,12 +90,33 @@
       document.getElementById('placeholder').textContent = 'Error: ' + message;
     };
 
+    function loadDotLottieData(arrayBuffer) {
+      if (anim) {
+        anim.destroy();
+        anim = null;
+      }
+
+      isDotLottie = true;
+      var container = document.getElementById('lottie-container');
+      container.innerHTML = '<canvas id="dotlottie-canvas" style="width:100%;height:100%;"></canvas>';
+
+      anim = new DotLottieWeb.DotLottie({
+        canvas: document.getElementById('dotlottie-canvas'),
+        data: arrayBuffer,
+        loop: loopEnabled,
+        autoplay: true,
+        wasmUrl: 'dotlottie-player.wasm'
+      });
+      anim.setSpeed(speed);
+    }
+
     function loadLottieData(animData) {
       if (anim) {
         anim.destroy();
         anim = null;
       }
 
+      isDotLottie = false;
       var container = document.getElementById('lottie-container');
       container.innerHTML = '';
 
@@ -109,7 +144,10 @@
 
     window.lottieSetLoop = function(loop) {
       loopEnabled = loop;
-      if (anim) anim.loop = loop;
+      if (anim) {
+        if (isDotLottie) anim.setLoop(loop);
+        else anim.loop = loop;
+      }
     };
 
     window.lottieSetSpeed = function(nextSpeed) {
@@ -141,6 +179,10 @@
       } else {
         container.style.border = 'none';
       }
+    };
+
+    window.setFilenameOverlay = function(filename) {
+      document.getElementById('filename-overlay').textContent = filename ? "playing " + filename + " animation" : "";
     };
   </script>
 </body>

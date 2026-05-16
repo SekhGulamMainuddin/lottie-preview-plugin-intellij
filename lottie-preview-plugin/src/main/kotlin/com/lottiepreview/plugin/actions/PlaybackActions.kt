@@ -12,10 +12,11 @@ import javax.swing.JCheckBox
 import javax.swing.JPanel
 import javax.swing.JComponent
 import javax.swing.Box
+import com.lottiepreview.plugin.ui.WrapLayout
 
 object PlaybackActions {
     fun buildToolbar(manager: LottieBrowserManager): JComponent {
-        val panel = JPanel(FlowLayout(FlowLayout.LEFT)).apply {
+        val panel = JPanel(WrapLayout(FlowLayout.LEFT)).apply {
             add(JButton("Play").apply {
                 toolTipText = "Play"
                 addActionListener { manager.play() }
