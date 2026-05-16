@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      align-items: center;
+      background: #1e1e1e;
+      color: #9aa0a6;
+      display: flex;
+      font: 13px -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      height: 100vh;
+      justify-content: center;
+      overflow: hidden;
+      width: 100vw;
+    }
+
+    #lottie-container {
+      align-items: center;
+      display: flex;
+      height: 100%;
+      justify-content: center;
+      max-height: 600px;
+      max-width: 600px;
+      width: 100%;
+    }
+
+    #placeholder {
+      max-width: 80%;
+      text-align: center;
+      word-break: break-word;
+    }
+
+    svg {
+      display: block;
+      height: 100%;
+      width: 100%;
+    }
+  </style>
+</head>
+<body>
+  <div id="lottie-container">
+    <div id="placeholder">Open a Lottie JSON file to preview</div>
+  </div>
+
+  <script src="lottie.min.js"></script>
+  <script>
+    var anim = null;
+    var loopEnabled = true;
+    var speed = 1;
+
+    window.loadLottieBase64 = function(base64) {
+      try {
+        var jsonStr = atob(base64);
+        var animData = JSON.parse(jsonStr);
+        loadLottieData(animData);
+      } catch (error) {
+        window.showLottieError(error.message || String(error));
+      }
+    };
+
+    window.showLottieError = function(message) {
+      if (anim) {
+        anim.destroy();
+        anim = null;
+      }
+
+      var container = document.getElementById('lottie-container');
+      container.innerHTML = '<div id="placeholder"></div>';
+      document.getElementById('placeholder').textContent = 'Error: ' + message;
+    };
+
+    function loadLottieData(animData) {
+      if (anim) {
+        anim.destroy();
+        anim = null;
+      }
+
+      var container = document.getElementById('lottie-container');
+      container.innerHTML = '';
+
+      anim = lottie.loadAnimation({
+        animationData: animData,
+        autoplay: true,
+        container: container,
+        loop: loopEnabled,
+        renderer: 'svg'
+      });
+      anim.setSpeed(speed);
+    }
+
+    window.lottiePlay = function() {
+      if (anim) anim.play();
+    };
+
+    window.lottiePause = function() {
+      if (anim) anim.pause();
+    };
+
+    window.lottieStop = function() {
+      if (anim) anim.stop();
+    };
+
+    window.lottieSetLoop = function(loop) {
+      loopEnabled = loop;
+      if (anim) anim.loop = loop;
+    };
+
+    window.lottieSetSpeed = function(nextSpeed) {
+      speed = nextSpeed;
+      if (anim) anim.setSpeed(nextSpeed);
+    };
+  </script>
+</body>
+</html>
