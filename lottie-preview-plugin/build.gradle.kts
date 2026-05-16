@@ -6,6 +6,10 @@ plugins {
 group = "com.lottiepreview"
 version = providers.gradleProperty("pluginVersion").get()
 
+val androidStudioPath = providers.environmentVariable("ANDROID_STUDIO_PATH")
+    .orElse("/Applications/Android Studio.app")
+    .get()
+
 repositories {
     mavenCentral()
     intellijPlatform {
@@ -15,7 +19,7 @@ repositories {
 
 dependencies {
     intellijPlatform {
-        local("/Applications/Android Studio.app")
+        local(androidStudioPath)
         bundledPlugin("org.jetbrains.android")
     }
 
@@ -48,7 +52,7 @@ intellijPlatform {
 
     pluginVerification {
         ides {
-            local("/Applications/Android Studio.app")
+            local(androidStudioPath)
         }
     }
 }

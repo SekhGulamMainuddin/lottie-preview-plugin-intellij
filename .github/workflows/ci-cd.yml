@@ -1,0 +1,73 @@
+name: CI/CD
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+    tags:
+      - "v*"
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    name: Build and release plugin
+    runs-on: macos-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: zulu
+          java-version: "17"
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v4
+
+      - name: Install Android Studio Panda 4 Patch 1
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          version="2025.3.4.7"
+          if [[ "$(uname -m)" == "arm64" ]]; then
+            package_name="android-studio-panda4-patch1-mac_arm.dmg"
+          else
+            package_name="android-studio-panda4-patch1-mac.dmg"
+          fi
+
+          dmg_path="$RUNNER_TEMP/android-studio.dmg"
+          mount_path="$RUNNER_TEMP/android-studio-mount"
+          app_path="$RUNNER_TEMP/Android Studio.app"
+          url="https://redirector.gvt1.com/edgedl/android/studio/install/${version}/${package_name}"
+
+          curl --fail --location --retry 3 --output "$dmg_path" "$url"
+          mkdir -p "$mount_path"
+          hdiutil attach "$dmg_path" -mountpoint "$mount_path" -nobrowse -quiet
+          ditto "$mount_path/Android Studio.app" "$app_path"
+          hdiutil detach "$mount_path" -quiet
+
+          echo "ANDROID_STUDIO_PATH=$app_path" >> "$GITHUB_ENV"
+
+      - name: Build, verify, and package
+        working-directory: lottie-preview-plugin
+        run: ./gradlew --no-daemon build verifyPlugin buildPlugin
+
+      - name: Upload plugin artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: lottie-preview-plugin
+          path: lottie-preview-plugin/build/distributions/*.zip
+          if-no-files-found: error
+
+      - name: Create GitHub release
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: softprops/action-gh-release@v2
+        with:
+          generate_release_notes: true
+          files: lottie-preview-plugin/build/distributions/*.zip
