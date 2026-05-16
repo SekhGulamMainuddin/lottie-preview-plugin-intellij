@@ -85,9 +85,66 @@ jobs:
           path: lottie-preview-plugin/build/distributions/*.zip
           if-no-files-found: error
 
+      - name: Generate release notes
+        if: startsWith(github.ref, 'refs/tags/')
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          CURRENT_TAG="${GITHUB_REF#refs/tags/}"
+          PREVIOUS_TAG=$(git tag --sort=-creatordate | grep -v "^${CURRENT_TAG}$" | head -n 1 || true)
+
+          if [[ -n "$PREVIOUS_TAG" ]]; then
+            RANGE="${PREVIOUS_TAG}..${CURRENT_TAG}"
+          else
+            RANGE="${CURRENT_TAG}"
+          fi
+
+          notes_file="${RUNNER_TEMP}/release_notes.md"
+
+          {
+            echo "## What's Changed"
+            echo ""
+
+            FEATS=$(git log "$RANGE" --no-merges --pretty=format:"- %s (%h)" --grep="^feat" 2>/dev/null || true)
+            FIXES=$(git log "$RANGE" --no-merges --pretty=format:"- %s (%h)" --grep="^fix" 2>/dev/null || true)
+            CI_CHANGES=$(git log "$RANGE" --no-merges --pretty=format:"- %s (%h)" --grep="^ci" 2>/dev/null || true)
+            OTHER=$(git log "$RANGE" --no-merges --pretty=format:"- %s (%h)" --grep="^chore\|^docs\|^refactor\|^style\|^test\|^perf\|^build" --extended-regexp 2>/dev/null || true)
+
+            if [[ -n "$FEATS" ]]; then
+              echo "### ✨ Features"
+              echo "$FEATS"
+              echo ""
+            fi
+
+            if [[ -n "$FIXES" ]]; then
+              echo "### 🐛 Bug Fixes"
+              echo "$FIXES"
+              echo ""
+            fi
+
+            if [[ -n "$CI_CHANGES" ]]; then
+              echo "### ⚙️ CI/CD"
+              echo "$CI_CHANGES"
+              echo ""
+            fi
+
+            if [[ -n "$OTHER" ]]; then
+              echo "### 🔧 Other Changes"
+              echo "$OTHER"
+              echo ""
+            fi
+
+            if [[ -n "$PREVIOUS_TAG" ]]; then
+              echo "**Full Changelog**: https://github.com/${{ github.repository }}/compare/${PREVIOUS_TAG}...${CURRENT_TAG}"
+            fi
+          } > "$notes_file"
+
+          echo "RELEASE_NOTES_FILE=$notes_file" >> "$GITHUB_ENV"
+
       - name: Create GitHub release
         if: startsWith(github.ref, 'refs/tags/')
         uses: softprops/action-gh-release@v2
         with:
-          generate_release_notes: true
+          body_path: ${{ env.RELEASE_NOTES_FILE }}
           files: lottie-preview-plugin/build/distributions/*.zip
