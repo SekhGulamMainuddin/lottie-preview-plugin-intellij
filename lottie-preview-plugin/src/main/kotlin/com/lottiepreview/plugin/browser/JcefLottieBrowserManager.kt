@@ -1,8 +1,8 @@
 package com.lottiepreview.plugin.browser
 
 import com.intellij.openapi.Disposable
+import com.intellij.openapi.application.PathManager
 import com.intellij.openapi.diagnostic.Logger
-import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
 import com.intellij.ui.jcef.JBCefBrowser
 import kotlinx.coroutines.CoroutineScope
@@ -13,13 +13,15 @@ import kotlinx.coroutines.launch
 import org.cef.browser.CefBrowser
 import org.cef.handler.CefLoadHandlerAdapter
 import java.io.File
+import java.nio.file.Files
+import java.nio.file.Path
+import java.nio.file.StandardCopyOption
 import java.nio.charset.StandardCharsets
 import java.util.Base64
 import java.util.concurrent.ConcurrentLinkedQueue
 import javax.swing.JComponent
 
 class JcefLottieBrowserManager(
-    private val project: Project,
     parentDisposable: Disposable
 ) : LottieBrowserManager {
     private val log = Logger.getInstance(JcefLottieBrowserManager::class.java)
@@ -48,16 +50,37 @@ class JcefLottieBrowserManager(
     }
 
     private fun loadPlayerHtml() {
-        val htmlUrl = javaClass.classLoader
-            .getResource("lottiepreview/player.html")
-            ?.toExternalForm()
+        val htmlUrl = runCatching {
+            extractPlayerResources().toUri().toASCIIString()
+        }.onFailure { error ->
+            log.error("Unable to prepare Lottie player resources", error)
+        }.getOrNull()
 
         if (htmlUrl == null) {
-            log.error("player.html not found in plugin resources")
             return
         }
 
+        playerReady = false
         browser.loadURL(htmlUrl)
+    }
+
+    private fun extractPlayerResources(): Path {
+        val playerDirectory = Path.of(PathManager.getTempPath(), "lottie-preview-plugin", "player")
+        Files.createDirectories(playerDirectory)
+
+        copyResource("lottiepreview/player.html", playerDirectory.resolve("player.html"))
+        copyResource("lottiepreview/lottie.min.js", playerDirectory.resolve("lottie.min.js"))
+
+        return playerDirectory.resolve("player.html")
+    }
+
+    private fun copyResource(resourcePath: String, target: Path) {
+        val input = javaClass.classLoader.getResourceAsStream(resourcePath)
+            ?: error("$resourcePath not found in plugin resources")
+
+        input.use {
+            Files.copy(it, target, StandardCopyOption.REPLACE_EXISTING)
+        }
     }
 
     override fun loadAnimation(file: File) {

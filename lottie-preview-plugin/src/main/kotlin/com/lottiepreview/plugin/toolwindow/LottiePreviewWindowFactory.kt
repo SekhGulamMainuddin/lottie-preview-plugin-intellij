@@ -6,7 +6,7 @@ import com.intellij.openapi.wm.ToolWindowFactory
 
 class LottiePreviewWindowFactory : ToolWindowFactory {
     override fun createToolWindowContent(project: Project, toolWindow: ToolWindow) {
-        val panel = LottiePreviewPanel(project)
+        val panel = LottiePreviewPanel()
         val content = toolWindow.contentManager.factory.createContent(panel, "", false)
         toolWindow.contentManager.addContent(content)
     }
