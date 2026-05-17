@@ -3,7 +3,7 @@
   <name>Lottie Preview</name>
   <vendor>Lottie Preview</vendor>
   <description><![CDATA[
-    Preview Lottie animations directly inside Android Studio.
+    Preview Lottie and dotLottie animations directly inside IntelliJ-based IDEs.
   ]]></description>
 
   <depends>com.intellij.modules.platform</depends>
