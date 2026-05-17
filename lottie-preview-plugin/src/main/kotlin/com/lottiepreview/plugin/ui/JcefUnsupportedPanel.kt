@@ -40,6 +40,7 @@ class JcefUnsupportedPanel : JBScrollPane() {
         contentPanel.add(headerPanel)
 
         // Description text pane (HTML with custom styling)
+        val ideName = com.intellij.openapi.application.ApplicationNamesInfo.getInstance().fullProductName
         val isDark = !com.intellij.ui.JBColor.isBright()
         val textColor = if (isDark) "#BBBBBB" else "#4E4E4E"
         val codeBgColor = if (isDark) "#3C3F41" else "#E5E5E5"
@@ -57,7 +58,7 @@ class JcefUnsupportedPanel : JBScrollPane() {
             text = """
                 <html>
                 <body style="font-family: '$fontName', sans-serif; font-size: ${fontSize}px; color: $textColor; line-height: 1.4;">
-                    To preview Lottie and dotLottie animations, Android Studio requires a <b>JCEF-enabled</b> boot runtime. 
+                    To preview Lottie and dotLottie animations, $ideName requires a <b>JCEF-enabled</b> boot runtime. 
                     Without JCEF, web-based rendering is unavailable in this IDE installation.
                 </body>
                 </html>
@@ -71,12 +72,12 @@ class JcefUnsupportedPanel : JBScrollPane() {
             """
                 <html>
                 <body style="font-family: '$fontName', sans-serif; font-size: ${fontSize}px; color: $textColor; line-height: 1.4;">
-                    This is the most reliable fix for Android Studio:
+                    This is the most reliable fix for $ideName:
                     <ol style="margin-top: 4px; padding-left: 20px;">
                         <li>Press <code style="background-color: $codeBgColor; color: $codeTextColor;">Cmd+Shift+A</code> (macOS) or <code style="background-color: $codeBgColor; color: $codeTextColor;">Ctrl+Shift+A</code> (Windows/Linux) to open the Action Search.</li>
                         <li>Type <b>"Choose Boot Java Runtime for the IDE"</b> and press Enter.</li>
                         <li>In the dropdown, select a runtime version that says <b>"with JCEF"</b>.</li>
-                        <li>Click <b>OK / Install</b> and <b>Restart</b> Android Studio.</li>
+                        <li>Click <b>OK / Install</b> and <b>Restart</b> $ideName.</li>
                     </ol>
                 </body>
                 </html>
@@ -96,7 +97,7 @@ class JcefUnsupportedPanel : JBScrollPane() {
                         <li>Open Action Search and search for <b>"Registry..."</b>.</li>
                         <li>Locate the key <code style="background-color: $codeBgColor; color: $codeTextColor;">ide.browser.jcef.enabled</code>.</li>
                         <li>Ensure it is <b>checked</b>.</li>
-                        <li>Restart Android Studio.</li>
+                        <li>Restart $ideName.</li>
                     </ol>
                 </body>
                 </html>

@@ -49,7 +49,7 @@ intellijPlatform {
         }
 
         description = """
-            Preview Lottie animations directly inside Android Studio using the embedded JCEF browser.
+            Preview Lottie and dotLottie animations directly inside IntelliJ-based IDEs using the embedded JCEF browser.
         """.trimIndent()
     }
 
