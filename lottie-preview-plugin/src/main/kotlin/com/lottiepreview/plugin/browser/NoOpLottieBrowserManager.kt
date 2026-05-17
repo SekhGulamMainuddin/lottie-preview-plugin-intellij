@@ -1,11 +1,11 @@
 package com.lottiepreview.plugin.browser
 
-import com.intellij.ui.components.JBLabel
+import com.lottiepreview.plugin.ui.JcefUnsupportedPanel
 import java.io.File
 import javax.swing.JComponent
 
 class NoOpLottieBrowserManager : LottieBrowserManager {
-    override val component: JComponent = JBLabel("JCEF is not supported in this IDE installation.")
+    override val component: JComponent = JcefUnsupportedPanel()
     override val currentFile: File? = null
 
     override fun loadAnimation(file: File) = Unit
