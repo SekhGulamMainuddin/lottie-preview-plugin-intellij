@@ -40,7 +40,7 @@ class JcefUnsupportedPanel : JBScrollPane() {
         contentPanel.add(headerPanel)
 
         // Description text pane (HTML with custom styling)
-        val ideName = com.intellij.openapi.application.ApplicationNamesInfo.getInstance().fullProductName
+        val ideName = com.intellij.openapi.application.ApplicationInfo.getInstance().versionName
         val isDark = !com.intellij.ui.JBColor.isBright()
         val textColor = if (isDark) "#BBBBBB" else "#4E4E4E"
         val codeBgColor = if (isDark) "#3C3F41" else "#E5E5E5"
