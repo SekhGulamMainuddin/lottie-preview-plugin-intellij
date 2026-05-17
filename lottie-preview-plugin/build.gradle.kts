@@ -37,8 +37,11 @@ intellijPlatform {
         version = providers.gradleProperty("pluginVersion").get()
 
         ideaVersion {
-            sinceBuild = providers.gradleProperty("pluginSinceBuild").get()
-            untilBuild = providers.gradleProperty("pluginUntilBuild").get()
+            sinceBuild = providers.gradleProperty("pluginSinceBuild")
+            val until = providers.gradleProperty("pluginUntilBuild")
+            if (until.isPresent && until.get().trim().isNotEmpty()) {
+                untilBuild = until
+            }
         }
 
         vendor {
