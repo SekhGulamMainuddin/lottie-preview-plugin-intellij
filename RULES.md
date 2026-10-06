@@ -54,6 +54,7 @@ All code **must** use the three sanctioned building blocks:
 │    - LottieBrowserManager (interface)               │
 │    - JcefLottieBrowserManager (JCEF renderer)       │
 │    - NoOpLottieBrowserManager (fallback)            │
+│    - JcefAvailability (reflection-based check)      │
 ├─────────────────────────────────────────────────────┤
 │  Utilities                                          │
 │    - LottieFileValidator (stateless, object)        │
@@ -94,5 +95,44 @@ com.lottiepreview.plugin/
 
 - **Gradle wrapper:** `./gradlew` from the `lottie-preview-plugin/` directory.
 - **JDK:** Use JDK 17 (Zulu) for building. Set `JAVA_HOME` if your default JDK differs.
-- **Target IDE:** Android Studio Panda 4 Patch 1 (build 253.x).
+- **Target IDE:** Android Studio Panda 4 Patch 1 (build 253.x) and newer, including Rabbit (2026.2+).
 - **CI runs on:** macOS (GitHub Actions) with Android Studio installed for `verifyPlugin`.
+
+---
+
+## JCEF Compatibility (Rabbit 2026.2+ / IntelliJ 2026.2+)
+
+Starting with Android Studio Rabbit (2026.2) and IntelliJ 2026.2, JCEF was extracted from
+the core platform into a separate **"Web Browser (JCEF)"** plugin. If a user does not have
+that plugin installed, any direct reference to `com.intellij.ui.jcef.JBCefApp` will trigger
+a `NoClassDefFoundError` at class-load time, crashing the plugin.
+
+### How This Plugin Handles It
+
+1. **Optional `<depends>` in `plugin.xml`:**
+   ```xml
+   <depends optional="true" config-file="jcef-optional.xml">com.intellij.modules.jcef</depends>
+   ```
+   This tells the platform to wire JCEF classes into this plugin's classloader **when
+   available**, without making it a hard requirement.
+
+2. **`jcef-optional.xml`** — An intentionally minimal config file (`<idea-plugin/>`) that
+   satisfies the `config-file` contract. No conditional extensions are registered there.
+
+3. **`JcefAvailability.isAvailable()`** — A reflection-based helper that probes for
+   `JBCefApp` via `Class.forName()` before calling `isSupported()`. All JCEF-dependent
+   code paths gate on this method, so no hard class reference to JCEF exists outside the
+   `JcefLottieBrowserManager` implementation.
+
+4. **Fallback path** — When JCEF is unavailable, `NoOpLottieBrowserManager` is used instead,
+   which renders the informative `JcefUnsupportedPanel` with troubleshooting steps.
+
+### Rules for Future Changes
+
+- **NEVER** import or reference `com.intellij.ui.jcef.*` classes outside the `browser/`
+  package's JCEF-specific implementations (`JcefLottieBrowserManager`).
+- **ALWAYS** use `JcefAvailability.isAvailable()` to check JCEF support. Do NOT use
+  `JBCefApp.isSupported()` directly — it will crash on Rabbit+ without the JCEF plugin.
+- If adding new JCEF-dependent extensions or services, register them in `jcef-optional.xml`
+  instead of the main `plugin.xml`.
+- Keep `pluginUntilBuild` unset (open-ended) to support future IDE versions.

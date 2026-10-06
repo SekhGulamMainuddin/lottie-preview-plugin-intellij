@@ -5,7 +5,7 @@ import com.intellij.openapi.components.Service
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.vfs.VirtualFile
-import com.intellij.ui.jcef.JBCefApp
+import com.lottiepreview.plugin.browser.JcefAvailability
 import com.lottiepreview.plugin.browser.JcefLottieBrowserManager
 import com.lottiepreview.plugin.browser.LottieBrowserManager
 import com.lottiepreview.plugin.browser.NoOpLottieBrowserManager
@@ -24,7 +24,7 @@ class LottiePreviewService(private val project: Project) : Disposable {
     val browserManager: LottieBrowserManager
 
     init {
-        browserManager = if (JBCefApp.isSupported()) {
+        browserManager = if (JcefAvailability.isAvailable()) {
             JcefLottieBrowserManager(this)
         } else {
             NoOpLottieBrowserManager()

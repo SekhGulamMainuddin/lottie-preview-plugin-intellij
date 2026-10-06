@@ -8,6 +8,11 @@
 
   <depends>com.intellij.modules.platform</depends>
 
+  <!-- Optional: wires the JCEF classloader when the Web Browser (JCEF) plugin is
+       installed. On pre-Rabbit IDEs the module is always bundled so this is a no-op.
+       On Rabbit (2026.2+) this lets the plugin degrade gracefully when JCEF is absent. -->
+  <depends optional="true" config-file="jcef-optional.xml">com.intellij.modules.jcef</depends>
+
   <extensions defaultExtensionNs="com.intellij">
     <toolWindow
       id="Lottie Preview"

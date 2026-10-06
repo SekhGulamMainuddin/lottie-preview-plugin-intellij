@@ -1,0 +1,11 @@
+<!--
+  Optional configuration loaded only when the JCEF module/plugin is available.
+  This file is intentionally minimal: the plugin already uses reflection-based
+  JCEF detection (JcefAvailability) and does not need to register additional
+  extensions or services conditionally.
+
+  Its primary purpose is to satisfy the IntelliJ <depends optional="true"
+  config-file="..."> contract so the platform correctly wires the JCEF
+  classloader into this plugin's class-loading chain.
+-->
+<idea-plugin/>
