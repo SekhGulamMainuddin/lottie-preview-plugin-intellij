@@ -66,18 +66,18 @@ class JcefUnsupportedPanel : JBScrollPane() {
         }
         contentPanel.add(descPane)
 
-        // Step 1 Section
+        // Step 1: Plugin installation for Rabbit (2026.2+)
         val step1Panel = createStepCard(
-            "1. Switch to a JCEF Runtime (Recommended)",
+            "1. Install \"Web Browser (JCEF)\" Plugin (Android Studio Rabbit 2026.2+)",
             """
                 <html>
                 <body style="font-family: '$fontName', sans-serif; font-size: ${fontSize}px; color: $textColor; line-height: 1.4;">
-                    This is the most reliable fix for $ideName:
+                    Starting with <b>Android Studio Rabbit (2026.2+)</b>, JCEF is provided via a separate plugin:
                     <ol style="margin-top: 4px; padding-left: 20px;">
-                        <li>Press <code style="background-color: $codeBgColor; color: $codeTextColor;">Cmd+Shift+A</code> (macOS) or <code style="background-color: $codeBgColor; color: $codeTextColor;">Ctrl+Shift+A</code> (Windows/Linux) to open the Action Search.</li>
-                        <li>Type <b>"Choose Boot Java Runtime for the IDE"</b> and press Enter.</li>
-                        <li>In the dropdown, select a runtime version that says <b>"with JCEF"</b>.</li>
-                        <li>Click <b>OK / Install</b> and <b>Restart</b> $ideName.</li>
+                        <li>Open top menu: <b>Android Studio > Settings</b> (or <b>Preferences</b>).</li>
+                        <li>Select <b>Plugins</b> from the left sidebar and click the <b>Marketplace</b> tab.</li>
+                        <li>Search for <b>"Web Browser (JCEF)"</b> (by JetBrains).</li>
+                        <li>Click <b>Install</b> and then <b>Restart IDE</b>.</li>
                     </ol>
                 </body>
                 </html>
@@ -86,9 +86,29 @@ class JcefUnsupportedPanel : JBScrollPane() {
         contentPanel.add(step1Panel)
         contentPanel.add(Box.createRigidArea(Dimension(0, 12)))
 
-        // Step 2 Section
+        // Step 2 Section: Boot Runtime
         val step2Panel = createStepCard(
-            "2. Force-Enable via Registry",
+            "2. Switch to a JCEF Runtime (Quail / Panda or if missing)",
+            """
+                <html>
+                <body style="font-family: '$fontName', sans-serif; font-size: ${fontSize}px; color: $textColor; line-height: 1.4;">
+                    Ensure the IDE boot runtime has JCEF native support enabled:
+                    <ol style="margin-top: 4px; padding-left: 20px;">
+                        <li>Press <code style="background-color: $codeBgColor; color: $codeTextColor;">Cmd+Shift+A</code> (macOS) or <code style="background-color: $codeBgColor; color: $codeTextColor;">Ctrl+Shift+A</code> (Windows/Linux) to open Action Search.</li>
+                        <li>Type <b>"Choose Boot Java Runtime for the IDE"</b> and press Enter.</li>
+                        <li>Select a runtime version that includes <b>"with JCEF"</b> (or <b>"-jcef"</b>).</li>
+                        <li>Click <b>OK / Install</b> and <b>Restart</b> $ideName.</li>
+                    </ol>
+                </body>
+                </html>
+            """.trimIndent()
+        )
+        contentPanel.add(step2Panel)
+        contentPanel.add(Box.createRigidArea(Dimension(0, 12)))
+
+        // Step 3 Section: Force Enable via Registry
+        val step3Panel = createStepCard(
+            "3. Force-Enable via Registry",
             """
                 <html>
                 <body style="font-family: '$fontName', sans-serif; font-size: ${fontSize}px; color: $textColor; line-height: 1.4;">
@@ -123,8 +143,8 @@ class JcefUnsupportedPanel : JBScrollPane() {
             }
         }
 
-        val step3Panel = createStepCard(
-            "3. Enable via idea.properties (Alternative)",
+        val step4Panel = createStepCard(
+            "4. Enable via idea.properties (Alternative)",
             """
                 <html>
                 <body style="font-family: '$fontName', sans-serif; font-size: ${fontSize}px; color: $textColor; line-height: 1.4;">
@@ -139,7 +159,7 @@ class JcefUnsupportedPanel : JBScrollPane() {
             """.trimIndent(),
             copyButton
         )
-        contentPanel.add(step3Panel)
+        contentPanel.add(step4Panel)
 
         // Set the scroll pane viewport
         setViewportView(contentPanel)
