@@ -67,6 +67,8 @@ intellijPlatform {
     pluginVerification {
         ides {
             local(androidStudioPath)
+            // Oldest supported build (pluginSinceBuild=241): catches APIs that only exist in newer IDEs.
+            create(org.jetbrains.intellij.platform.gradle.IntelliJPlatformType.IntellijIdeaCommunity, "2024.1.7")
         }
     }
 }

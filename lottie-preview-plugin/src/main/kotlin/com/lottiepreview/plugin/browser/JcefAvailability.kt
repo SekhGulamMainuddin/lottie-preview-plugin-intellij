@@ -1,8 +1,6 @@
 package com.lottiepreview.plugin.browser
 
-import com.intellij.ide.plugins.PluginManagerCore
 import com.intellij.openapi.diagnostic.Logger
-import com.intellij.openapi.extensions.PluginId
 import java.lang.reflect.InvocationTargetException
 
 /**
@@ -29,8 +27,6 @@ object JcefAvailability {
     @Volatile
     private var jbCefAppMissing = false
 
-    private const val JCEF_PLUGIN_ID = "com.intellij.modules.jcef"
-
     /**
      * Returns `true` only when **both** conditions hold:
      *  1. The `JBCefApp` class is on this plugin's classloader.
@@ -42,10 +38,6 @@ object JcefAvailability {
         return invokeIsSupported(jbCefAppClass)
     }
 
-    @JvmStatic
-    fun isJcefPluginEnabled(): Boolean =
-        PluginManagerCore.isLoaded(PluginId.getId(JCEF_PLUGIN_ID))
-
     private fun loadJBCefAppOnPluginClasspath(): Class<*>? {
         if (jbCefAppMissing) return null
         val pluginClassLoader = JcefAvailability::class.java.classLoader
@@ -53,14 +45,10 @@ object JcefAvailability {
             Class.forName(JB_CEF_APP, true, pluginClassLoader)
         } catch (_: ClassNotFoundException) {
             jbCefAppMissing = true
-            if (isJcefPluginEnabled()) {
-                log.warn(
-                    "Web Browser (JCEF) is enabled in the IDE but $JB_CEF_APP is not on the Lottie Preview " +
-                        "plugin classpath. Restart the IDE after installing or enabling JCEF."
-                )
-            } else {
-                log.info("JCEF not available: $JB_CEF_APP class not found")
-            }
+            log.info(
+                "JCEF not available: $JB_CEF_APP class not found. On 2026.2+ install or enable the " +
+                    "Web Browser (JCEF) plugin and restart the IDE."
+            )
             null
         } catch (e: LinkageError) {
             jbCefAppMissing = true
