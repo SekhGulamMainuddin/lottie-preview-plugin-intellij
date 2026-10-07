@@ -19,11 +19,12 @@ repositories {
 
 dependencies {
     intellijPlatform {
-        local(androidStudioPath)
-        bundledPlugin("org.jetbrains.android")
+        // Compile against an IDE that still ships JCEF in the core platform. Android Studio Rabbit
+        // (2026.2+) moved JCEF to the optional "Web Browser (JCEF)" plugin, so its jars lack
+        // JBCefBrowser. At runtime JCEF is wired via the optional <depends> in plugin.xml.
+        intellijIdeaCommunity("2025.2.4")
     }
 
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.8.1")
 }
 
 kotlin {

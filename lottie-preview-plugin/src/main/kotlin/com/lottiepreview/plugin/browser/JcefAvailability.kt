@@ -1,6 +1,9 @@
 package com.lottiepreview.plugin.browser
 
+import com.intellij.ide.plugins.PluginManagerCore
 import com.intellij.openapi.diagnostic.Logger
+import com.intellij.openapi.extensions.PluginId
+import java.lang.reflect.InvocationTargetException
 
 /**
  * Safe JCEF availability check that works across all IntelliJ Platform versions.
@@ -10,37 +13,73 @@ import com.intellij.openapi.diagnostic.Logger
  * is not installed, directly referencing `com.intellij.ui.jcef.JBCefApp` triggers
  * a `NoClassDefFoundError` at class-load time.
  *
- * This helper uses reflection to probe for the class first, so the calling code
- * never hard-links against JCEF symbols at the point of the check. The rest of
- * the JCEF-specific code (e.g. `JcefLottieBrowserManager`) lives behind this
- * gate and is only loaded when JCEF is genuinely available.
+ * Availability requires `JBCefApp` on **this plugin's classloader** (via optional
+ * `<depends>` entries in plugin.xml) so [JcefLottieBrowserManager] can use JCEF types.
  */
 object JcefAvailability {
+
+    private const val JB_CEF_APP = "com.intellij.ui.jcef.JBCefApp"
 
     private val log = Logger.getInstance(JcefAvailability::class.java)
 
     /**
+     * The plugin classloader is fixed for the IDE session, so once [JB_CEF_APP] is missing
+     * it stays missing until restart. Cache that to avoid re-probing and re-logging.
+     */
+    @Volatile
+    private var jbCefAppMissing = false
+
+    private const val JCEF_PLUGIN_ID = "com.intellij.modules.jcef"
+
+    /**
      * Returns `true` only when **both** conditions hold:
-     *  1. The `JBCefApp` class is on the runtime classpath (i.e. the JCEF plugin
-     *     is installed on Rabbit+, or it's a pre-Rabbit IDE that bundles JCEF).
-     *  2. `JBCefApp.isSupported()` returns `true` (the current JVM boot runtime
-     *     actually ships the native CEF binaries).
-     *
-     * Any reflective or linkage failure is caught and treated as "unsupported".
+     *  1. The `JBCefApp` class is on this plugin's classloader.
+     *  2. `JBCefApp.isSupported()` returns `true` (JBR + natives + registry allow JCEF).
      */
     @JvmStatic
     fun isAvailable(): Boolean {
+        val jbCefAppClass = loadJBCefAppOnPluginClasspath() ?: return false
+        return invokeIsSupported(jbCefAppClass)
+    }
+
+    @JvmStatic
+    fun isJcefPluginEnabled(): Boolean =
+        PluginManagerCore.isLoaded(PluginId.getId(JCEF_PLUGIN_ID))
+
+    private fun loadJBCefAppOnPluginClasspath(): Class<*>? {
+        if (jbCefAppMissing) return null
+        val pluginClassLoader = JcefAvailability::class.java.classLoader
         return try {
-            val clazz = Class.forName("com.intellij.ui.jcef.JBCefApp")
-            val method = clazz.getMethod("isSupported")
-            method.invoke(null) as Boolean
+            Class.forName(JB_CEF_APP, true, pluginClassLoader)
+        } catch (_: ClassNotFoundException) {
+            jbCefAppMissing = true
+            if (isJcefPluginEnabled()) {
+                log.warn(
+                    "Web Browser (JCEF) is enabled in the IDE but $JB_CEF_APP is not on the Lottie Preview " +
+                        "plugin classpath. Restart the IDE after installing or enabling JCEF."
+                )
+            } else {
+                log.info("JCEF not available: $JB_CEF_APP class not found")
+            }
+            null
         } catch (e: LinkageError) {
+            jbCefAppMissing = true
             log.info("JCEF not available: linkage failure (${e.message})")
+            null
+        }
+    }
+
+    private fun invokeIsSupported(jbCefAppClass: Class<*>): Boolean {
+        return try {
+            val method = jbCefAppClass.getMethod("isSupported")
+            (method.invoke(null) as? Boolean) == true
+        } catch (e: InvocationTargetException) {
+            log.warn("JCEF isSupported() failed", e.targetException ?: e)
             false
-        } catch (e: ClassNotFoundException) {
-            log.info("JCEF not available: JBCefApp class not found")
+        } catch (e: LinkageError) {
+            log.info("JCEF not available: linkage failure invoking isSupported (${e.message})")
             false
-        } catch (e: Throwable) {
+        } catch (e: ReflectiveOperationException) {
             log.warn("JCEF availability check failed unexpectedly", e)
             false
         }

@@ -11,6 +11,7 @@ public class LottiePreviewWindowFactory implements ToolWindowFactory {
     public void createToolWindowContent(@NotNull Project project, @NotNull ToolWindow toolWindow) {
         LottiePreviewPanel panel = new LottiePreviewPanel(project);
         Content content = toolWindow.getContentManager().getFactory().createContent(panel, "", false);
+        content.setDisposer(panel);
         toolWindow.getContentManager().addContent(content);
     }
 }
