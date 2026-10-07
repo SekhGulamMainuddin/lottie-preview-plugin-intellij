@@ -1,10 +1,13 @@
 package com.lottiepreview.plugin.ui
 
 import com.intellij.icons.AllIcons
+import com.intellij.ide.BrowserUtil
 import com.intellij.openapi.ide.CopyPasteManager
 import com.intellij.ui.components.JBLabel
 import com.intellij.ui.components.JBPanel
 import com.intellij.ui.components.JBScrollPane
+import com.intellij.util.system.CpuArch
+import com.intellij.openapi.util.SystemInfo
 import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.UIUtil
 import java.awt.BorderLayout
@@ -13,6 +16,7 @@ import java.awt.FlowLayout
 import java.awt.Font
 import java.awt.datatransfer.StringSelection
 import javax.swing.*
+import javax.swing.event.HyperlinkEvent
 
 class JcefUnsupportedPanel : JBScrollPane() {
     init {
@@ -58,7 +62,7 @@ class JcefUnsupportedPanel : JBScrollPane() {
             text = """
                 <html>
                 <body style="font-family: '$fontName', sans-serif; font-size: ${fontSize}px; color: $textColor; line-height: 1.4;">
-                    To preview Lottie and dotLottie animations, $ideName requires a <b>JCEF-enabled</b> boot runtime. 
+                    To preview Lottie and dotLottie animations, $ideName needs <b>JCEF</b> (the embedded Chromium browser).
                     Without JCEF, web-based rendering is unavailable in this IDE installation.
                 </body>
                 </html>
@@ -67,6 +71,8 @@ class JcefUnsupportedPanel : JBScrollPane() {
         contentPanel.add(descPane)
 
         // Step 1: Plugin installation for Rabbit (2026.2+)
+        val ideBuild = com.intellij.openapi.application.ApplicationInfo.getInstance().build.asStringWithoutProductCode()
+        val platformSuffix = jcefPluginPlatformSuffix()
         val step1Panel = createStepCard(
             "1. Install \"Web Browser (JCEF)\" Plugin (Android Studio Rabbit 2026.2+)",
             """
@@ -77,7 +83,17 @@ class JcefUnsupportedPanel : JBScrollPane() {
                         <li>Open top menu: <b>Android Studio > Settings</b> (or <b>Preferences</b>).</li>
                         <li>Select <b>Plugins</b> from the left sidebar and click the <b>Marketplace</b> tab.</li>
                         <li>Search for <b>"Web Browser (JCEF)"</b> (by JetBrains).</li>
-                        <li>Click <b>Install</b> and then <b>Restart IDE</b>.</li>
+                        <li>Click <b>Install</b>, then fully quit and reopen $ideName.</li>
+                    </ol>
+                    Each JCEF plugin release works with <b>one exact IDE build</b>. If the Marketplace shows nothing
+                    or the install fails:
+                    <ol style="margin-top: 4px; padding-left: 20px;">
+                        <li>Open <a href="$JCEF_PLUGIN_VERSIONS_URL">the Web Browser (JCEF) versions page</a>.</li>
+                        <li>Download the version matching your IDE build
+                            <code style="background-color: $codeBgColor; color: $codeTextColor;">$ideBuild</code>
+                            and platform <code style="background-color: $codeBgColor; color: $codeTextColor;">$platformSuffix</code>.</li>
+                        <li>In <b>Settings > Plugins</b>, click the gear icon > <b>Install Plugin from Disk...</b> and pick the downloaded zip.</li>
+                        <li>Fully quit and reopen $ideName.</li>
                     </ol>
                 </body>
                 </html>
@@ -88,7 +104,7 @@ class JcefUnsupportedPanel : JBScrollPane() {
 
         // Step 2 Section: Boot Runtime
         val step2Panel = createStepCard(
-            "2. Switch to a JCEF Runtime (Quail / Panda or if missing)",
+            "2. Switch to a JCEF Runtime (older IDEs, or if the runtime lacks JCEF)",
             """
                 <html>
                 <body style="font-family: '$fontName', sans-serif; font-size: ${fontSize}px; color: $textColor; line-height: 1.4;">
@@ -123,10 +139,9 @@ class JcefUnsupportedPanel : JBScrollPane() {
                 </html>
             """.trimIndent()
         )
-        contentPanel.add(step2Panel)
+        contentPanel.add(step3Panel)
         contentPanel.add(Box.createRigidArea(Dimension(0, 12)))
 
-        // Step 3 Section
         val copyButton = JButton("Copy Property Line").apply {
             toolTipText = "Copy 'ide.browser.jcef.enabled=true' to clipboard"
             addActionListener {
@@ -192,6 +207,11 @@ class JcefUnsupportedPanel : JBScrollPane() {
             editorKit = javax.swing.text.html.HTMLEditorKit()
             alignmentX = JComponent.LEFT_ALIGNMENT
             text = htmlContent
+            addHyperlinkListener { event ->
+                if (event.eventType == HyperlinkEvent.EventType.ACTIVATED) {
+                    event.url?.let { BrowserUtil.browse(it) }
+                }
+            }
         }
         card.add(contentPane)
 
@@ -206,5 +226,20 @@ class JcefUnsupportedPanel : JBScrollPane() {
         }
 
         return card
+    }
+
+    /** Platform suffix used in Web Browser (JCEF) plugin version names, e.g. `mac-arm64`. */
+    private fun jcefPluginPlatformSuffix(): String {
+        val os = when {
+            SystemInfo.isMac -> "mac"
+            SystemInfo.isWindows -> "windows"
+            else -> "linux"
+        }
+        val arch = if (CpuArch.isArm64()) "arm64" else "x86_64"
+        return "$os-$arch"
+    }
+
+    private companion object {
+        const val JCEF_PLUGIN_VERSIONS_URL = "https://plugins.jetbrains.com/plugin/31360-web-browser-jcef-/versions"
     }
 }

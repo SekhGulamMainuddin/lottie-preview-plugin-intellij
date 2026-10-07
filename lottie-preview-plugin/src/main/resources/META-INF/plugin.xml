@@ -10,7 +10,8 @@
 
   <!-- Optional: wires the JCEF classloader when the Web Browser (JCEF) plugin is
        installed. On pre-Rabbit IDEs the module is always bundled so this is a no-op.
-       On Rabbit (2026.2+) this lets the plugin degrade gracefully when JCEF is absent. -->
+       On Rabbit (2026.2+) JCEF ships as the "Web Browser (JCEF)" marketplace plugin, whose
+       plugin ID is com.intellij.modules.jcef, so the same <depends> covers both. -->
   <depends optional="true" config-file="jcef-optional.xml">com.intellij.modules.jcef</depends>
 
   <extensions defaultExtensionNs="com.intellij">
